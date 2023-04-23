@@ -1,0 +1,873 @@
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import javax.swing.JOptionPane;
+import sun.audio.AudioPlayer;
+import sun.audio.AudioStream;
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ *
+ * @author Hp
+ */
+public class RadioactiveDecay extends javax.swing.JFrame {
+    // <editor-fold defaultstate="collapsed" desc=" ${JavaPlot} ">
+
+
+Graphics2D gg;
+@Override 
+public void paint(Graphics g){
+gg = (Graphics2D) g;
+super.paint(gg);
+gg=(Graphics2D)PlotPanel.getGraphics();
+}
+
+double convfx, convfy;
+int offsetj,offseti;
+public void initPlot(double x1,double y1,double x2, double y2,
+        int xoffset,int yoffset){
+
+convfx=PlotPanel.getWidth()/(x2-x1);
+convfy=PlotPanel.getHeight()/(y2-y1);
+double dpx = xoffset/100.0;
+double dpy = yoffset/100.0;
+offseti=(int)(PlotPanel.getWidth()*dpx);
+offsetj=(int)(PlotPanel.getHeight()*dpy);
+double W = PlotPanel.getWidth();
+double H = PlotPanel.getHeight();
+gg.drawLine(0, offsetj ,PlotPanel.getWidth(),offsetj );
+gg.drawLine(offseti, 0,offseti,PlotPanel.getHeight());
+//PlotPanel.setBackground(Color.GREEN);
+//draw scale x
+for(int l=0;l<PlotPanel.getWidth();l=l+(PlotPanel.getWidth()/10)){
+gg.drawLine(offseti+l, offsetj,offseti+l,offsetj+5);
+gg.drawLine(offseti-l, offsetj,offseti-l,offsetj+5);
+gg.drawString(""+String.format("%.0f",x2*(l/W)), offseti+l-5, offsetj+20);
+gg.drawString(""+String.format("%.0f",x2*(-l/W)), offseti-l-5, offsetj+20);
+}
+//draw scale y
+for(int p=0;p<H;p= p +(int)H/10){
+gg.drawLine(offseti, offsetj-p,offseti-5,offsetj-p);
+gg.drawLine(offseti, offsetj+p,offseti-5,offsetj+p);
+gg.drawString(""+String.format("%.0f",y2*(p/H)), offseti-20, offsetj-p+5); 
+gg.drawString(""+String.format("%.0f",y2*(-p/H)), offseti-25, offsetj+p+5);
+}
+}
+
+public void plotPoint(double datax, double datay){
+double sx,sy;
+int i,j;
+//calculate screen coordinates
+sx=datax*convfx;
+sy=datay*convfy;
+//converst to integer plus axis offset
+i=offseti+(int)sx;
+j=offsetj-(int)sy;
+gg.drawLine(i,j,i,j);
+
+}
+public void plotVector(double datax, double datay){
+double sx,sy;
+int i,j;
+//calculate screen coordinates
+sx=datax*convfx;
+sy=datay*convfy;
+//converst to integer plus axis offset
+i=offseti+(int)sx;
+j=offsetj-(int)sy;
+gg.drawLine(offseti,offsetj,i,j);
+
+}
+public void plotVector1(double x0, double y0, double x, double y){
+double sx0,sy0,sx,sy;
+int i0,j0,i,j;
+//calculate screen coordinates
+sx0=x0*convfx;
+sy0=y0*convfy;
+sx=x*convfx;
+sy=y*convfy;
+//converst to integer plus axis offset
+i0=offseti+(int)sx0;
+j0=offsetj-(int)sy0;
+i=offseti+(int)sx;
+j=offsetj-(int)sy;
+gg.drawLine(i0,j0,i,j);
+
+}
+private void setPenSize (int penSize) {
+gg.setStroke(new BasicStroke(penSize));
+gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
+
+} 
+public void plotLine1(double xi, double yi, double xf, double yf){
+//setPenSize(1);
+//gg.setColor(Color.yellow);
+double sx,sy,fx,fy;
+int i,j,i2,j2;
+//calculate screen coordinates
+sx=xi*convfx;
+sy=yi*convfy;
+fx=xf*convfx;
+fy=yf*convfy;
+//converst to integer plus axis offset
+i=offseti+(int)sx;
+j=offsetj-(int)sy;
+i2 = offseti+(int)fx;
+j2 = offsetj -(int)fy;
+gg.drawLine(i,j,i2,j2);
+}
+public void plotLine(double datax, double datay, double delx, double dely){
+double sx,sy,dx,dy;
+int i,j,i2,j2;
+//calculate screen coordinates
+sx=datax*convfx;
+sy=datay*convfy;
+dx=delx*convfx;
+dy=dely*convfy;
+//converst to integer plus axis offset
+i=offseti+(int)sx;
+j=offsetj-(int)sy;
+i2 = i+(int)dx;
+j2 = j-(int)dy;
+gg.drawLine(i,j,i2,j2);
+}  
+ public void setPenColor(Color penColor){
+        gg.setColor(penColor);
+        
+    }
+//Urusan File
+public PrintStream openfile (String filename){
+PrintStream ps = null;
+try{
+ps = new PrintStream (new FileOutputStream(filename));
+}catch (IOException e){
+    System.err.printf("\nProblem creating file:%s\n\n",filename);}
+return ps;
+}
+public static void playMusic(String filepath){
+InputStream music;
+try{
+music = new FileInputStream(new File(filepath));
+AudioStream audios = new AudioStream(music);
+AudioPlayer.player.start(audios);
+}
+catch (Exception e)
+{
+
+JOptionPane.showMessageDialog(null, "Error");
+}    
+}
+// </editor-fold>
+
+    /**
+     * Creates new form RadioactiveDecay
+     */
+    public RadioactiveDecay() {
+        initComponents();
+        playMusic("Geiger Counter Sound (online-audio-converter.com).wav"); 
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jPanel1 = new javax.swing.JPanel();
+        PlotPanel = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        txtHalfLife = new javax.swing.JTextField();
+        plotA = new javax.swing.JButton();
+        txtInitialActivity = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        txtOutput1 = new javax.swing.JTextArea();
+        ShowButton = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        txtOutput3 = new javax.swing.JTextArea();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        txtOutput2 = new javax.swing.JTextArea();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        txtNucleonNumber = new javax.swing.JTextField();
+        jScrollPane6 = new javax.swing.JScrollPane();
+        txtOutput4 = new javax.swing.JTextArea();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        txtTime = new javax.swing.JTextField();
+        AButton = new javax.swing.JButton();
+        Nbutton = new javax.swing.JButton();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        txtOutput5 = new javax.swing.JTextArea();
+        jScrollPane7 = new javax.swing.JScrollPane();
+        txtOutput6 = new javax.swing.JTextArea();
+        ExitButton = new javax.swing.JButton();
+        clearAllbutton = new javax.swing.JButton();
+        ClearAobutton = new javax.swing.JButton();
+        ClearaButton = new javax.swing.JButton();
+        ClearTbutton = new javax.swing.JButton();
+        Cleartbutton = new javax.swing.JButton();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        ClearALLTXT = new javax.swing.JButton();
+        printdataButton = new javax.swing.JButton();
+        jScrollPane8 = new javax.swing.JScrollPane();
+        txtCMD = new javax.swing.JTextArea();
+        jScrollPane9 = new javax.swing.JScrollPane();
+        txtOutput7 = new javax.swing.JTextArea();
+        saveButton = new javax.swing.JButton();
+        txtFileName = new javax.swing.JTextField();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        jPanel1.setBackground(new java.awt.Color(204, 204, 204));
+
+        javax.swing.GroupLayout PlotPanelLayout = new javax.swing.GroupLayout(PlotPanel);
+        PlotPanel.setLayout(PlotPanelLayout);
+        PlotPanelLayout.setHorizontalGroup(
+            PlotPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 449, Short.MAX_VALUE)
+        );
+        PlotPanelLayout.setVerticalGroup(
+            PlotPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        jLabel1.setText("RADIOACTIVE DECAY LAW CALCULATOR");
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jTextArea1.setText("This is a program that will help Nuclear Physicists to calculate the Activity, Number of particles\npresent, N at any given time, t of any atoms in the periodic table.  \n\nThis program will also calculate the initial mass of sample. \n\nActivity value and half-life can be obtained experimentally by using Geiger Muller.\n\nNucleon number can be obtained at:\n\nhttps://www-nds.iaea.org/relnsd/vcharthtml/VChartHTML.html \n");
+        jScrollPane1.setViewportView(jTextArea1);
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel2.setText("Intial Activity");
+
+        jLabel3.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel3.setText("Ao:");
+
+        jLabel10.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel10.setText("Half-life of Isotope/Atom");
+
+        jLabel11.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel11.setText("T1/2:");
+
+        plotA.setText("Plot Activity Versus Time Elapsed");
+        plotA.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                plotAActionPerformed(evt);
+            }
+        });
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        jLabel4.setText("ADDITIONAL USEFUL INFORMATION");
+
+        txtOutput1.setColumns(20);
+        txtOutput1.setRows(5);
+        jScrollPane2.setViewportView(txtOutput1);
+
+        ShowButton.setText("Show Information");
+        ShowButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ShowButtonActionPerformed(evt);
+            }
+        });
+
+        txtOutput3.setColumns(20);
+        txtOutput3.setRows(5);
+        jScrollPane3.setViewportView(txtOutput3);
+
+        txtOutput2.setColumns(20);
+        txtOutput2.setRows(5);
+        jScrollPane4.setViewportView(txtOutput2);
+
+        jLabel5.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel5.setText("Nucleon Number");
+
+        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel6.setText("a:");
+
+        txtOutput4.setColumns(20);
+        txtOutput4.setRows(5);
+        jScrollPane6.setViewportView(txtOutput4);
+
+        jLabel7.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel7.setText("Time Elapsed");
+
+        jLabel8.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel8.setText("t:");
+
+        AButton.setText("Show Activity, A at time, t");
+        AButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                AButtonActionPerformed(evt);
+            }
+        });
+
+        Nbutton.setText("Show number of particles, N at time, t");
+        Nbutton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                NbuttonActionPerformed(evt);
+            }
+        });
+
+        txtOutput5.setColumns(20);
+        txtOutput5.setRows(5);
+        jScrollPane5.setViewportView(txtOutput5);
+
+        txtOutput6.setColumns(20);
+        txtOutput6.setRows(5);
+        jScrollPane7.setViewportView(txtOutput6);
+
+        ExitButton.setText("Exit");
+        ExitButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ExitButtonActionPerformed(evt);
+            }
+        });
+
+        clearAllbutton.setText("CLEAR ALL");
+        clearAllbutton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                clearAllbuttonActionPerformed(evt);
+            }
+        });
+
+        ClearAobutton.setText("CLEAR Ao");
+        ClearAobutton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ClearAobuttonActionPerformed(evt);
+            }
+        });
+
+        ClearaButton.setText("CLEAR a");
+        ClearaButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ClearaButtonActionPerformed(evt);
+            }
+        });
+
+        ClearTbutton.setText("CLEAR T1/2");
+        ClearTbutton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ClearTbuttonActionPerformed(evt);
+            }
+        });
+
+        Cleartbutton.setText("CLEAR t");
+        Cleartbutton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                CleartbuttonActionPerformed(evt);
+            }
+        });
+
+        jLabel9.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel9.setText("UNITS:");
+
+        jLabel12.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel12.setText("Ao: Decay/unit time");
+
+        jLabel13.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel13.setText("T1/2: Unit time");
+
+        jLabel14.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel14.setText("a:   Dimensionless");
+
+        jLabel15.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        jLabel15.setText("t: Unit time");
+
+        ClearALLTXT.setText("CLEAR ALL INFORMATION");
+        ClearALLTXT.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ClearALLTXTActionPerformed(evt);
+            }
+        });
+
+        printdataButton.setText("PRINT DATA");
+        printdataButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                printdataButtonActionPerformed(evt);
+            }
+        });
+
+        txtCMD.setColumns(20);
+        txtCMD.setRows(5);
+        txtCMD.setText("reset\nplot \"data.dat\" using 1:2  ");
+        jScrollPane8.setViewportView(txtCMD);
+
+        txtOutput7.setColumns(20);
+        txtOutput7.setRows(5);
+        jScrollPane9.setViewportView(txtOutput7);
+
+        saveButton.setText("Save Data As:");
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveButtonActionPerformed(evt);
+            }
+        });
+
+        txtFileName.setText("data01.dat");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(PlotPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(27, 27, 27)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel11)
+                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtHalfLife, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(txtInitialActivity, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(70, 70, 70)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel7)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                                            .addComponent(jLabel8)
+                                            .addGap(18, 18, 18)
+                                            .addComponent(txtTime, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                            .addComponent(jLabel6)
+                                            .addGap(18, 18, 18)
+                                            .addComponent(txtNucleonNumber, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addComponent(jLabel10)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel15)
+                            .addComponent(jLabel14)
+                            .addComponent(jLabel12)
+                            .addComponent(jLabel13)
+                            .addComponent(jLabel9))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 450, Short.MAX_VALUE)
+                                .addComponent(jScrollPane1))
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(jPanel1Layout.createSequentialGroup()
+                                    .addComponent(plotA, javax.swing.GroupLayout.PREFERRED_SIZE, 251, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(ShowButton, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                                    .addComponent(Nbutton, javax.swing.GroupLayout.PREFERRED_SIZE, 251, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(AButton, javax.swing.GroupLayout.PREFERRED_SIZE, 221, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(clearAllbutton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(ClearAobutton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(ClearaButton)
+                                .addGap(18, 18, 18)
+                                .addComponent(ClearTbutton)
+                                .addGap(18, 18, 18)
+                                .addComponent(Cleartbutton))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(saveButton)
+                                .addGap(18, 18, 18)
+                                .addComponent(txtFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2)
+                    .addComponent(jScrollPane3)
+                    .addComponent(jScrollPane4)
+                    .addComponent(jScrollPane6)
+                    .addComponent(jScrollPane5)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(ExitButton)
+                        .addGap(18, 18, 18)
+                        .addComponent(ClearALLTXT)
+                        .addGap(18, 18, 18)
+                        .addComponent(printdataButton)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane8)
+                    .addComponent(jScrollPane9)
+                    .addComponent(jScrollPane7, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(PlotPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel4))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel9)
+                        .addGap(1, 1, 1)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel14)
+                                .addGap(4, 4, 4)
+                                .addComponent(jLabel13)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel15))
+                            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabel2)
+                                .addComponent(jLabel5)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(plotA)
+                            .addComponent(ShowButton))
+                        .addGap(29, 29, 29))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(13, 13, 13)
+                                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addGap(25, 25, 25)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                            .addComponent(jLabel11)
+                                            .addComponent(txtHalfLife, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(jLabel8)
+                                            .addComponent(txtTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                            .addComponent(saveButton)
+                                            .addComponent(txtFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jScrollPane7, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(jScrollPane9)
+                                        .addGap(18, 18, 18))))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel3)
+                                    .addComponent(txtInitialActivity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel6)
+                                    .addComponent(txtNucleonNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(18, 18, 18)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jLabel10)
+                                    .addComponent(jLabel7))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(Nbutton)
+                            .addComponent(AButton))
+                        .addGap(35, 35, 35)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(ExitButton)
+                            .addComponent(ClearALLTXT)
+                            .addComponent(printdataButton)
+                            .addComponent(clearAllbutton)
+                            .addComponent(ClearAobutton)
+                            .addComponent(ClearaButton)
+                            .addComponent(ClearTbutton)
+                            .addComponent(Cleartbutton)))
+                    .addComponent(jScrollPane8, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void plotAActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_plotAActionPerformed
+            initPlot(0,0,1000,1000,10,90);
+            setPenSize(2);
+            double Ao = Double.parseDouble(txtInitialActivity.getText());
+            double T = Double.parseDouble(txtHalfLife.getText());
+            double L;
+            L = Math.log(2)/T;
+            for(double t=0;t<5*T;t=t+0.1){
+            double A;
+            A = Ao*Math.exp(-L*t);
+            plotPoint(t,A);
+            }
+            
+            
+            
+        
+    }//GEN-LAST:event_plotAActionPerformed
+
+    private void ShowButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ShowButtonActionPerformed
+            double T = Double.parseDouble(txtHalfLife.getText());
+            String str1 = String.format("Given Half-Life = %.3e Unit Time", T);
+            txtOutput1.setText(str1);
+            double No;
+            double Ao = Double.parseDouble(txtInitialActivity.getText());
+            double L = Math.log(2)/T;
+            No = Ao/L;
+            String str2 = String.format("No = %.3e particles ",No);
+            txtOutput3.setText(str2);
+            double a = Double.parseDouble(txtNucleonNumber.getText());
+            double m;
+            m = (a/(6.02e+23))*No;
+            String str3 = String.format("Intial mass sample = %.3e g", m);
+            txtOutput4.setText(str3);
+            if(T>1000){String str01 = String.format(" The isotope that you have chosen is very stable ");
+            txtOutput2.setText(str01);}
+            else {String str02 = String.format("The isotope that you have chosen is not stable"); txtOutput2.setText(str02);}
+            
+    }//GEN-LAST:event_ShowButtonActionPerformed
+
+    private void AButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AButtonActionPerformed
+            double T = Double.parseDouble(txtHalfLife.getText());
+            double t = Double.parseDouble(txtTime.getText());
+            double No;
+            double Ao = Double.parseDouble(txtInitialActivity.getText());
+            double L = Math.log(2)/T;
+            No = Ao/L;
+            double a = Double.parseDouble(txtNucleonNumber.getText());
+            double A;
+            A = Ao*Math.exp(-L*t);
+            String str4 = String.format("Activity = %.3e Decays/unit time ", A);
+            txtOutput6.setText(str4);
+            
+    }//GEN-LAST:event_AButtonActionPerformed
+
+    private void NbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NbuttonActionPerformed
+            double T = Double.parseDouble(txtHalfLife.getText());
+            double t = Double.parseDouble(txtTime.getText());
+            double No;
+            double Ao = Double.parseDouble(txtInitialActivity.getText());
+            double L = Math.log(2)/T;
+            No = Ao/L;
+            double a = Double.parseDouble(txtNucleonNumber.getText());
+            double N;
+            N = No*Math.exp(-L*t);
+            String str5 = String.format("Number of particles = %.3e particles ", N);
+            txtOutput5.setText(str5);
+    }//GEN-LAST:event_NbuttonActionPerformed
+
+    private void ExitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExitButtonActionPerformed
+            System.exit(0); 
+    }//GEN-LAST:event_ExitButtonActionPerformed
+
+    private void clearAllbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearAllbuttonActionPerformed
+            txtInitialActivity.setText("");
+            txtNucleonNumber.setText("");
+            txtTime.setText("");
+            txtHalfLife.setText("");
+            
+    }//GEN-LAST:event_clearAllbuttonActionPerformed
+
+    private void ClearAobuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearAobuttonActionPerformed
+            txtInitialActivity.setText("");
+    }//GEN-LAST:event_ClearAobuttonActionPerformed
+
+    private void ClearaButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearaButtonActionPerformed
+            txtNucleonNumber.setText("");
+    }//GEN-LAST:event_ClearaButtonActionPerformed
+
+    private void ClearTbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearTbuttonActionPerformed
+            txtHalfLife.setText("");
+    }//GEN-LAST:event_ClearTbuttonActionPerformed
+
+    private void CleartbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CleartbuttonActionPerformed
+            txtTime.setText("");
+    }//GEN-LAST:event_CleartbuttonActionPerformed
+
+    private void ClearALLTXTActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClearALLTXTActionPerformed
+            txtOutput1.setText("");
+            txtOutput2.setText("");
+            txtOutput3.setText("");
+            txtOutput4.setText("");
+            txtOutput5.setText("");
+            txtOutput6.setText("");
+            txtOutput7.setText("");
+    }//GEN-LAST:event_ClearALLTXTActionPerformed
+
+    private void printdataButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_printdataButtonActionPerformed
+        PrintStream ps1 = openfile("cmd.plt");
+        
+        String namafile = txtFileName.getText();
+        PrintStream ps = openfile(namafile);
+        String str2 = txtOutput7.getText();
+        
+        ps.printf("%s \n", str2);
+        ps.close();
+        String str = txtCMD.getText();
+        ps1.printf("%s \n", str);
+        ps1.close();
+        Runtime callgp = Runtime.getRuntime();
+        try{
+        Process prcs=callgp.exec("wgnuplot -persist cmd.plt");
+        }catch (Exception e){}
+        
+
+    }//GEN-LAST:event_printdataButtonActionPerformed
+
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        double Ao = Double.parseDouble(txtInitialActivity.getText());
+        double T = Double.parseDouble(txtHalfLife.getText());
+        double L = Math.log(2)/T;
+        double t;
+        for(t=0;t<8*T;t=t+0.1){
+        double A;
+        A = Ao*Math.exp(-L*t);
+        String strD = String.format("%.1f %.1f\n", t,A);
+        txtOutput7.append(strD);
+        }
+        
+        
+        
+        String namafile = txtFileName.getText();
+        PrintStream ps = openfile(namafile);
+        String str = txtOutput7.getText();
+        
+        ps.printf("%s \n", str);
+        ps.close();
+    }//GEN-LAST:event_saveButtonActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(RadioactiveDecay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(RadioactiveDecay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(RadioactiveDecay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(RadioactiveDecay.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new RadioactiveDecay().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton AButton;
+    private javax.swing.JButton ClearALLTXT;
+    private javax.swing.JButton ClearAobutton;
+    private javax.swing.JButton ClearTbutton;
+    private javax.swing.JButton ClearaButton;
+    private javax.swing.JButton Cleartbutton;
+    private javax.swing.JButton ExitButton;
+    private javax.swing.JButton Nbutton;
+    private javax.swing.JPanel PlotPanel;
+    private javax.swing.JButton ShowButton;
+    private javax.swing.JButton clearAllbutton;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JScrollPane jScrollPane7;
+    private javax.swing.JScrollPane jScrollPane8;
+    private javax.swing.JScrollPane jScrollPane9;
+    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JButton plotA;
+    private javax.swing.JButton printdataButton;
+    private javax.swing.JButton saveButton;
+    private javax.swing.JTextArea txtCMD;
+    private javax.swing.JTextField txtFileName;
+    private javax.swing.JTextField txtHalfLife;
+    private javax.swing.JTextField txtInitialActivity;
+    private javax.swing.JTextField txtNucleonNumber;
+    private javax.swing.JTextArea txtOutput1;
+    private javax.swing.JTextArea txtOutput2;
+    private javax.swing.JTextArea txtOutput3;
+    private javax.swing.JTextArea txtOutput4;
+    private javax.swing.JTextArea txtOutput5;
+    private javax.swing.JTextArea txtOutput6;
+    private javax.swing.JTextArea txtOutput7;
+    private javax.swing.JTextField txtTime;
+    // End of variables declaration//GEN-END:variables
+}
